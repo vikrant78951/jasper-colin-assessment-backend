@@ -6,7 +6,7 @@ import cors from "cors";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
-import apiLimiter from "../src/middleware/rateLimitMiddleware.js";
+import {apiLimiter} from "../src/middleware/rateLimitMiddleware.js";
 
 
 dotenv.config();
