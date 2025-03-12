@@ -6,6 +6,8 @@ import cors from "cors";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import apiLimiter from "../src/middleware/rateLimitMiddleware.js";
+
 
 dotenv.config();
 const numCPUs = os.cpus().length || 1; 
@@ -28,9 +30,11 @@ if (cluster.isPrimary && !isProduction) {
   });
 } else {
   // Worker process runs Express server
-  const app = express();
+   const app = express();
+   app.use(express.json());
+   app.use(apiLimiter);
 
-  // Connect to MongoDB (if it fails, the process exits)
+  // Connect to MongoDB  
   connectDB().then(() => {
     app.use(cors());
     app.use(express.json());
