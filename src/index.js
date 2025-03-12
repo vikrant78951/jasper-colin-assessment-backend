@@ -8,9 +8,10 @@ import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 
 dotenv.config();
-const numCPUs = os.cpus().length; 
+const numCPUs = os.cpus().length || 1; 
+const isProduction = process.env.NODE_ENV === "production";
 
-if (cluster.isPrimary) {
+if (cluster.isPrimary && !isProduction) {
   console.log(`Primary process ${process.pid} is running`);
 
   // Fork workers (one per CPU core)
@@ -20,7 +21,9 @@ if (cluster.isPrimary) {
 
   // Restart workers if they crash
   cluster.on("exit", (worker, code, signal) => {
-    console.log(`${i} Worker ${worker.process.pid} died. Starting a new worker...`);
+    console.log(
+      `${i} Worker ${worker.process.pid} died. Starting a new worker...`
+    );
     cluster.fork();
   });
 } else {
@@ -37,7 +40,7 @@ if (cluster.isPrimary) {
     app.get("/", (req, res) => {
       res.send("API is running...");
     });
-    
+
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () =>
       console.log(`Worker ${process.pid} running on port ${PORT}`)
