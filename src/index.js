@@ -14,7 +14,6 @@ const numCPUs = os.cpus().length || 1;
 const isProduction = process.env.NODE_ENV === "production";
 
 if (cluster.isPrimary && !isProduction) {
-  console.log(`Primary process ${process.pid} is running`);
 
   // Fork workers (one per CPU core)
   for (let i = 0; i < numCPUs; i++) {
@@ -23,9 +22,7 @@ if (cluster.isPrimary && !isProduction) {
 
   // Restart workers if they crash
   cluster.on("exit", (worker, code, signal) => {
-    console.log(
-      `${i} Worker ${worker.process.pid} died. Starting a new worker...`
-    );
+   
     cluster.fork();
   });
 } else {
