@@ -46,15 +46,20 @@ export const getProductById = async (req, res) => {
  */
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, price } = req.body;
+    const { name, description, price, category } = req.body;
 
-    if (!name || !description || !price) {
+    if (!name || !description || !price || !category) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
     }
 
-    const newProduct = await Product.create({ name, description, price });
+    const newProduct = await Product.create({
+      name,
+      description,
+      price,
+      category,
+    });
 
     res
       .status(200)

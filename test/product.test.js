@@ -26,7 +26,7 @@ describe("Product API", () => {
   it("should create new product", async () => {
     const res = await request(app)
       .post("/api/products")
-      .send({ name: "Phone", description: "Smartphone", price: 699 });
+      .send({ name: "samsung 1", description: "Smartphone", price: 699 , category : "phone"});
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("message", "Product created successfully");
     expect(res.body.data).toHaveProperty("_id"); 
@@ -37,7 +37,6 @@ describe("Product API", () => {
     const res = await request(app)
       .put(`/api/products/${productId}`)
       .send({ name: "Phone", description: "New Smartphone", price: 100 });
-    debugger;
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("message", "Product updated successfully");
