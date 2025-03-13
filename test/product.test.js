@@ -33,6 +33,18 @@ describe("Product API", () => {
     productId = res.body.data._id;
   });
 
+    it("should fetch product by id", async () => {
+      const res = await request(app)
+        .get("/api/products/"+productId)
+      expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty(
+        "message",
+        "Product fetch successfully"
+      );
+      expect(res.body.data).toHaveProperty("_id");
+      productId = res.body.data._id;
+    });
+
   it("should update product", async () => {
     const res = await request(app)
       .put(`/api/products/${productId}`)

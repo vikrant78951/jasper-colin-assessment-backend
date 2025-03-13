@@ -31,7 +31,13 @@ export const getProductById = async (req, res) => {
         .json({ success: false, message: "Product not found" });
       }
 
-    res.status(200).json({ success: true, data: product });
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Product fetch successfully",
+        data: product,
+      });
   } catch (error) {
     res
       .status(500)
