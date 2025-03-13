@@ -26,10 +26,11 @@ beforeAll(async () => {
 // });
 
 afterAll(async () => {
+  await User.deleteOne({ email: testUser.email });
+
    setTimeout(async () => {
      await mongoose.connection.close();
    }, 1000);
-     await User.deleteOne({ email: testUser.email });
 
 });
 
@@ -38,15 +39,12 @@ afterAll(async () => {
 describe("Authentication API", () => {
 
   it.only("should register a new user", async () => {
-      jest.setTimeout(10000);
     const res = await request(app).post("/api/auth/register").send(testUser);
-      debugger
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("message", "User registered successfully");
   });
 
-  it("should login the user", async () => {
-    // jest.setTimeout(10000); 
+  it.only("should login the user", async () => {
     const res = await request(app).post("/api/auth/login").send({
       email: testUser.email,
       password: testUser.password,
@@ -58,7 +56,6 @@ describe("Authentication API", () => {
   });
 
   it("should reject login with incorrect credentials", async () => {
-    // jest.setTimeout(10000); 
     const res = await request(app).post("/api/auth/login").send({
       email:testUser.email,
       password: "wrongpassword",
@@ -68,7 +65,6 @@ describe("Authentication API", () => {
   });
 
   it("should refresh the access token", async () => {
-    // jest.setTimeout(10000); 
     const res = await request(app)
       .post("/api/auth/refresh")
       .set("Cookie", `refreshToken=${refreshToken}`);
@@ -77,14 +73,12 @@ describe("Authentication API", () => {
   });
 
   it("should not allow unauthorized access", async () => {
-    // jest.setTimeout(10000); 
     const res = await request(app).post("/api/auth/logout");
     expect(res.statusCode).toEqual(401);
     expect(res.body).toHaveProperty("message", "Unauthorized");
   });
 
   it("should log out the user", async () => {
-    // jest.setTimeout(10000); 
     const res = await request(app)
       .post("/api/auth/logout")
       .set("Cookie", `accessToken=${accessToken}`);

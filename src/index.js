@@ -12,6 +12,10 @@ import {apiLimiter} from "../src/middleware/rateLimitMiddleware.js";
 dotenv.config();
 const numCPUs = os.cpus().length || 1; 
 const isProduction = process.env.NODE_ENV === "production";
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://jca-taupe.vercel.app",
+];
 
 if (cluster.isPrimary && !isProduction) {
 
@@ -35,7 +39,12 @@ if (cluster.isPrimary && !isProduction) {
   connectDB().then(() => {
     app.use(cors());
     app.use(express.json());
-
+    app.use(
+      cors({
+        origin: allowedOrigins,
+        credentials: true,
+      })
+    );
     app.use("/api/auth", authRoutes);
     app.use("/api/products", productRoutes);
     app.get("/", (req, res) => {

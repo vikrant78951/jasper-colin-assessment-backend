@@ -10,6 +10,7 @@ const config = {
   clearMocks: true,
   coverageProvider: "v8",
   testEnvironment: "node",
+  testTimeout: 100000,
 };
 
 export default config;

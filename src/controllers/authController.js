@@ -55,19 +55,21 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    debugger
     if (!email || !password) {
       return res
         .status(400)
         .json({ message: "Email and password are required" });
     }
-
-    const user = await User.findOne({ email }).select("+password");
+    const users = await User.find({});
+    console.log(users);
+    
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
