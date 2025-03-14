@@ -40,8 +40,8 @@ export const registerUser = async (req, res) => {
     await newSession.save();
 
     // Set cookies for authentication
-    res.cookie("accessToken", accessToken, { httpOnly: true, secure: true });
-    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true });
+    res.cookie("accessToken", accessToken, { httpOnly: true, secure: true, sameSite : 'none' });
+    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite : 'none' });
     const userdata = {
       name: firstName + " " + lastName,
       email: email,
@@ -67,7 +67,7 @@ export const loginUser = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "User Not Found" });
     }
-
+    console.log(user)
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -78,8 +78,8 @@ export const loginUser = async (req, res) => {
 
     await Session.create({ userId: user._id, refreshToken });
 
-    res.cookie("accessToken", accessToken, { httpOnly: true, secure: true });
-    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true });
+    res.cookie("accessToken", accessToken, { httpOnly: true, secure: true, sameSite : 'none' });
+    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true, sameSite : 'none' });
 
     const userdata = {
       name :user.firstName + " " + user.lastName,
