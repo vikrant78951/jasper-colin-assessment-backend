@@ -51,15 +51,15 @@ if (cluster.isPrimary && !isProduction) {
   const app = express();
   app.use(express.json());
   app.use(apiLimiter);
-   app.use(express.json());
   app.use(cookieParser());
+  app.set("trust proxy", 1);
+
   // Apply CORS middleware before routes
   app.use(cors(corsOptions));
   app.options("*", cors(corsOptions));
 
   // Connect to MongoDB
   connectDB().then(() => {
-   
     app.use("/api/auth", authRoutes);
     app.use("/api/products", productRoutes);
     app.get("/", (req, res) => {

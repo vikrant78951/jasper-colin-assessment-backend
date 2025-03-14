@@ -49,7 +49,6 @@ export const registerUser = async (req, res) => {
     res.status(200).json({  user: userdata, "message": "User registered successfully" });
   } catch (error) {
     console.error("Registration Error:", error.message);
-    debugger
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -66,7 +65,7 @@ export const loginUser = async (req, res) => {
     }    
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
-      return res.status(400).json({ message: "User Not Found credentials" });
+      return res.status(400).json({ message: "User Not Found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -97,7 +96,6 @@ export const loginUser = async (req, res) => {
 // Refresh token
 export const refreshToken = async (req, res) => {
   try {
-    debugger
     console.log("Received Cookies:", req.cookies);  
 
     if (!req.cookies || !req.cookies.refreshToken) {

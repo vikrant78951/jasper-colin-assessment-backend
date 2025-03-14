@@ -1,91 +1,89 @@
 import request from "supertest";
+import app from "../app.js";
+import User from "../models/User.js";
+import Session from "../models/Session.js";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-import app from "./app.js";
-import User from '../src/models/User.js'
+import bcrypt from "bcrypt";
 
-dotenv.config();
-
-let accessToken;
+let userData = {
+  firstName: "Test",
+  lastName: "User",
+  email: "testUser@example.com",
+  password: "Password123",
+};
 let refreshToken;
 
-const testUser = {
-  firstName: "test",
-  lastName: "user",
-  email: "testUser@example.com",
-  password: "password123",
-};
-
-
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGODB_URL);
+  await mongoose.connect(process.env.MONGO_URI);
 });
-
-// afterAll(async () => {
-//   await User.deleteOne({ email: testUser.email });
-// });
 
 afterAll(async () => {
-  // await User.deleteOne({ email: testUser.email });
-
+  await User.deleteOne({ email: testUser.email });
   await mongoose.connection.close();
- 
-
 });
 
+describe("Auth Routes", () => {
 
 
-describe("Authentication API", () => {
-
-  it("should register a new user", async () => {
-    const res = await request(app).post("/api/auth/register").send(testUser);
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty("message", "User registered successfully");
+  test("should register a new user", async () => {
+    const res = await request(app).post("/api/auth/register").send(userData);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe("User registered successfully");
   });
 
-  it.only("should login the user", async () => {
+  test("should not register a user with existing email", async () => {
+    const res = await request(app).post("/api/auth/register").send(userData);
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toBe("User already exists");
+  });
+
+  test("should login an existing user", async () => {
     const res = await request(app).post("/api/auth/login").send({
-      email: testUser.email,
-      password: testUser.password,
+      email: userData.email,
+      password: userData.password,
     });
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty("message", "User logged in successfully");
-    accessToken = res.headers["set-cookie"][0].split(";")[0].split("=")[1];
-    refreshToken = res.headers["set-cookie"][1].split(";")[0].split("=")[1];
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe("User logged in successfully");
+    refreshToken = res.headers["set-cookie"].find((cookie) =>
+      cookie.startsWith("refreshToken")
+    );
+    expect(refreshToken).toBeDefined();
   });
 
-  it("should reject login with incorrect credentials", async () => {
+  test("should not login with incorrect password", async () => {
     const res = await request(app).post("/api/auth/login").send({
-      email: testUser.email,
+      email: userData.email,
       password: "wrongpassword",
     });
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toHaveProperty("message", "Invalid credentials");
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toBe("Invalid credentials");
   });
 
-  it.only("should refresh the access token", async () => {
-    debugger;
-    const agent = request.agent(app);  
-    const res = await agent
-      .post("/api/auth/refresh")
-      .set("Cookie", `refreshToken=${refreshToken}`);
-    console.log("Response Headers:", res.headers);
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty("message", "Access token refreshed");
+  test("should refresh access token", async () => {
+    const res = await request(app)
+      .post("/api/auth/refresh-token")
+      .set("Cookie", [refreshToken]);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe("Access token refreshed");
   });
 
-
-  it("should not allow unauthorized access", async () => {
-    const res = await request(app).post("/api/auth/logout");
-    expect(res.statusCode).toEqual(401);
-    expect(res.body).toHaveProperty("message", "Unauthorized");
-  });
-
-  it("should log out the user", async () => {
+  test("should logout user", async () => {
     const res = await request(app)
       .post("/api/auth/logout")
-      .set("Cookie", `accessToken=${accessToken}`);
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty("message", "User logged out successfully");
+      .set("Cookie", [refreshToken]);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe("User logged out successfully");
+  });
+
+  test("should return session data", async () => {
+    await request(app).post("/api/auth/login").send({
+      email: userData.email,
+      password: userData.password,
+    });
+    const sessionRes = await request(app)
+      .get("/api/auth/session")
+      .set("Cookie", [refreshToken]);
+    expect(sessionRes.statusCode).toBe(200);
+    expect(sessionRes.body.success).toBe(true);
   });
 });

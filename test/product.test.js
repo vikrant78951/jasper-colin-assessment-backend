@@ -19,7 +19,6 @@ describe("Product API", () => {
   
   it("should fetch all product", async () => {
     const res = await request(app).get("/api/products");
-    debugger
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("message", "Products fetched successfully");
   });
@@ -56,7 +55,7 @@ describe("Product API", () => {
   });
 
   it("should delete the product", async () => {
-    const res = await request(app).delete(`/api/products/${productId}`); // Use stored product ID
+    const res = await request(app).delete(`/api/products/${productId}`); 
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty(
