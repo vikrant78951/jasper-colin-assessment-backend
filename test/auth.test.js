@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import app from "./app.js";
 import User from '../src/models/User.js'
-import { connectDB } from "../src/config/db.js";
+
 dotenv.config();
 
 let accessToken;
@@ -18,7 +18,7 @@ const testUser = {
 
 
 beforeAll(async () => {
-  await connectDB();
+  await mongoose.connect(process.env.MONGODB_URL);
 });
 
 // afterAll(async () => {
@@ -26,11 +26,10 @@ beforeAll(async () => {
 // });
 
 afterAll(async () => {
-  await User.deleteOne({ email: testUser.email });
+  // await User.deleteOne({ email: testUser.email });
 
-   setTimeout(async () => {
-     await mongoose.connection.close();
-   }, 1000);
+  await mongoose.connection.close();
+ 
 
 });
 
@@ -38,7 +37,7 @@ afterAll(async () => {
 
 describe("Authentication API", () => {
 
-  it.only("should register a new user", async () => {
+  it("should register a new user", async () => {
     const res = await request(app).post("/api/auth/register").send(testUser);
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("message", "User registered successfully");
@@ -57,20 +56,24 @@ describe("Authentication API", () => {
 
   it("should reject login with incorrect credentials", async () => {
     const res = await request(app).post("/api/auth/login").send({
-      email:testUser.email,
+      email: testUser.email,
       password: "wrongpassword",
     });
     expect(res.statusCode).toEqual(400);
     expect(res.body).toHaveProperty("message", "Invalid credentials");
   });
 
-  it("should refresh the access token", async () => {
-    const res = await request(app)
+  it.only("should refresh the access token", async () => {
+    debugger;
+    const agent = request.agent(app);  
+    const res = await agent
       .post("/api/auth/refresh")
       .set("Cookie", `refreshToken=${refreshToken}`);
+    console.log("Response Headers:", res.headers);
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("message", "Access token refreshed");
   });
+
 
   it("should not allow unauthorized access", async () => {
     const res = await request(app).post("/api/auth/logout");

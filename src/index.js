@@ -7,12 +7,13 @@ import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import {apiLimiter} from "../src/middleware/rateLimitMiddleware.js";
+import cookieParser from "cookie-parser";
 
 
 dotenv.config();
 const numCPUs = os.cpus().length || 1; 
 const isProduction = process.env.NODE_ENV === "production";
-const whitelist = ["http://localhost:3001", "https://jca-taupe.vercel.app"];
+const whitelist = ["http://localhost:3000", "https://jca-taupe.vercel.app"];
  const corsOptions = {
    origin: function (origin, callback) {
      if (!origin || whitelist.includes(origin)) {
@@ -51,7 +52,7 @@ if (cluster.isPrimary && !isProduction) {
   app.use(express.json());
   app.use(apiLimiter);
    app.use(express.json());
-  
+  app.use(cookieParser());
   // Apply CORS middleware before routes
   app.use(cors(corsOptions));
   app.options("*", cors(corsOptions));
