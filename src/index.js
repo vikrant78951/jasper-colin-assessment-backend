@@ -12,10 +12,26 @@ import {apiLimiter} from "../src/middleware/rateLimitMiddleware.js";
 dotenv.config();
 const numCPUs = os.cpus().length || 1; 
 const isProduction = process.env.NODE_ENV === "production";
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://jca-taupe.vercel.app",
-];
+const whitelist = ["http://localhost:3001", "https://jca-taupe.vercel.app"];
+ const corsOptions = {
+   origin: function (origin, callback) {
+     if (!origin || whitelist.includes(origin)) {
+       callback(null, true);
+     } else {
+       callback(new Error("Not allowed by CORS"));
+     }
+   },
+   credentials: true, 
+   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+   allowedHeaders: [
+     "Origin",
+     "X-Requested-With",
+     "Content-Type",
+     "Accept",
+     "Authorization",
+   ],
+ };
+
 
 if (cluster.isPrimary && !isProduction) {
 
@@ -31,20 +47,18 @@ if (cluster.isPrimary && !isProduction) {
   });
 } else {
   // Worker process runs Express server
-   const app = express();
+  const app = express();
+  app.use(express.json());
+  app.use(apiLimiter);
    app.use(express.json());
-   app.use(apiLimiter);
+  
+  // Apply CORS middleware before routes
+  app.use(cors(corsOptions));
+  app.options("*", cors(corsOptions));
 
-  // Connect to MongoDB  
+  // Connect to MongoDB
   connectDB().then(() => {
-    app.use(cors());
-    app.use(express.json());
-    app.use(
-      cors({
-        origin: allowedOrigins,
-        credentials: true,
-      })
-    );
+   
     app.use("/api/auth", authRoutes);
     app.use("/api/products", productRoutes);
     app.get("/", (req, res) => {
